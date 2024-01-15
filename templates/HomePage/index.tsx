@@ -8,12 +8,10 @@ import Icon from "@/components/Icon";
 import Users from "@/components/Users";
 import Search from "./Search";
 import Table from "./Table";
-import useAuth from "../../hooks/useAuth"; // Adjust the path to your useAuth hook as necessary
 
 import { chatRequest } from "@/mocks/chats";
 
 const HomePage = () => {
-    useAuth(); // This will check for authentication and redirect if necessary
     const [search, setSearch] = useState<string>("");
 
     return (

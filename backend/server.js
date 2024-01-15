@@ -8,19 +8,64 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./User');
 const { OpenAI } = require('openai'); 
+const Chatbot = require('../models/Chatbot');
+
 
 const app = express();
+const fileUpload = require('express-fileupload'); // If you are using express-fileupload
+
 app.use(cors());
 app.use(express.json()); 
+app.use(fileUpload()); // Use this middleware if you are using express-fileupload
+
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+// Endpoint to save a new chatbot
+app.post('/api/chatbots', async (req, res) => {
+  try {
+    const { name, assistantId, userId, model, description, instructions } = req.body;
+    const newChatbot = new Chatbot({
+      name,
+      assistantId,
+      userId,
+      model,
+      description,
+      instructions
+    });
+    await newChatbot.save();
+    res.status(201).json({ success: true, message: 'Chatbot created successfully', chatbot: newChatbot });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
+// Endpoint to list all chatbots
+app.get('/api/chatbots', async (req, res) => {
+  try {
+    const chatbots = await Chatbot.find({}).sort({ creationDate: -1 });
+    res.status(200).json({ success: true, chatbots });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/save-chatbot', async (req, res) => {
+  const chatbotData = req.body;
+  // Logic to save chatbotData in a database or a file
+  // ...
+  res.status(200).json({ success: true, message: 'Chatbot saved successfully' });
+});
 // New endpoint for creating a chatbot
 app.post('/api/create-bot', async (req, res) => {
+  console.log("Request Body:", req.body); // This should show all form fields
+  console.log("Files:", req.files); // This should show the uploaded files if any
+
   const { name, botModel, message } = req.body;
+  console.log("Received botModel:", botModel); // This should not be undefined
+  
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
   try {
       const assistant = await openai.beta.assistants.create({
